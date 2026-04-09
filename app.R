@@ -7,7 +7,7 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-test
+
 }
 
 # Run the application 
