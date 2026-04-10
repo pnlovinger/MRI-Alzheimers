@@ -31,7 +31,7 @@ To use the code for the app, please do the following:
 7. Launch the code using the "Run" button in the file window
 
 ## Version Control Workflow
-GitHub for this code is hosted on Pierce Lovinger's personal account. Pull Requests were enforced, meaning that any change required a separate branch be created and later merged to main. These branches were created and merged as needed. Pull requests were reviewed by both Pierce and Jeremy. In the event of a conflict in merging, the code was scanned and edited in GitHub to ensure proper merging.
+GitHub for this code is hosted on Pierce Lovinger's personal account. Pull Requests were enforced, meaning that any change required a separate branch be created and later merged to main. These branches were created and merged as needed. Pull requests were reviewed by both Pierce and Jeremy, with approval required from the other author before merges were allowed (enforced by GitHub rules). In the event of a conflict in merging, the code was scanned and edited in GitHub to ensure proper merging.
 
 ## Citation for Data
 Rabie El Kharoua. (2024). 🧠 Alzheimer's Disease Dataset 🧠 [Data set]. Kaggle. https://doi.org/10.34740/KAGGLE/DSV/8668279
