@@ -1,4 +1,4 @@
-# Alzheimer's Risk Assessment Shiny
+# Alzheimer's Risk Assessment Shiny Application
 
 ## Project Summary
 This Shiny application is intended to provide users with a way to potentially assess their risk of Alzheimer's by comparing user-inputed data to a regression on simulated data of Alzheimer's and non-Alzheimer's patients. The app is also intended to tell users which factors of the regression into the regression are increasing and decreasing the risk of Alzheimer's. Should time allow, a second tab will allow users to explore the relationships in the dataset between two to three variables of their choosing.
@@ -15,6 +15,7 @@ For privacy reasons, the dataset is not included with the Github and is only sto
 
 ## Team Member Roles
 Pierce - ReadMe, shiny app layout
+
 Jeremy - Regression analysis code,
 
 ## Using the Application
