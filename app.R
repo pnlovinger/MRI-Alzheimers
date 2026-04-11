@@ -3,8 +3,10 @@ library(bslib)
 library(ggplot2)
 library(dplyr)
 
-# Load Data and transform it for Shiny
+# Load Data
 data <- read.csv("alzheimers_disease_data.csv")
+
+# Rename Variables for better viewing
 Mapper <- c(
   "Physical Activity in hours" = "PhysicalActivity",
   "Diet Quality" = "DietQuality",
@@ -20,15 +22,22 @@ Mapper <- c(
   "Alzheimer's Diagnosis" = "Diagnosis"
   )
 data <- data %>% rename(all_of(Mapper))
-Outcomes = list("Age","BMI","Physical Activity in hours", "Diet Quality", 
+
+# Define button mapping
+Outcomes = c("Age","BMI","Physical Activity in hours", "Diet Quality", 
                 "Sleep Quality", "Systolic Blood Pressure", 
                 "Diastolic Blood Pressure","Total Cholesterol"
                 )
-Exposures = list("Family History of Alzheimer's", "Memory Complaints", 
+Exposures = c("Family History of Alzheimer's", "Memory Complaints", 
                  "Behavioral Problems", "Confusion", "Disorientation",
                  "Personality Changes", "Alzheimer's Diagnosis"
                  )
-  
+
+#Factor Exposure Variables appropiately
+data <- data %>% mutate(across(Exposures, 
+                        ~factor(., levels = c(0,1), labels = c("No", "Yes"))))
+                        
+
 # Define UI for application
 ui <- fluidPage(
   layout_columns(
