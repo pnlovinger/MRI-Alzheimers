@@ -1,12 +1,12 @@
 # Alzheimer's Risk Assessment Shiny Application
 
 ## Project Summary
-This Shiny application is intended to provide users with a way to potentially assess their risk of Alzheimer's by comparing user-inputed data to a regression on simulated data of Alzheimer's and non-Alzheimer's patients. The app is also intended to tell users which factors of the regression into the regression are increasing and decreasing the risk of Alzheimer's. Should time allow, a second tab will allow users to explore the relationships in the dataset between two to three variables of their choosing.
+This Shiny application is intended to provide users with a way to potentially assess their risk of Alzheimer's by comparing user-inputed data to a regression on simulated data of Alzheimer's and non-Alzheimer's patients. The app is also intended to tell users which factors of the regression into the regression are increasing and decreasing the risk of Alzheimer's. A second tab will allow users to explore the relationships in the dataset between two to three variables of their choosing.
 
 This project was a collaboration by Pierce Lovinger and Jeremy Reimann, as an assignment for Brown University's BHDS 2010 course, "Statistical Programming in Health Data Science". This GitHub is hosted on Pierce Lovinger's account. The final application is hosted on shinyapps.io
 
 ## Access the Full Application here
-(TBD)
+https://pilovinger.shinyapps.io/Alzheimers_Exploration/
 
 ## Raw Data Description
 The data set contains simulated data for 2,149 patients, each with a unique combination of variables. Variables include, but are not limited to, Alzheimer's diagnosis status, self-reported sleep quality score from 0 to 10, patient age and gender, smoking and alcohol consumption status, and clinical measurements such as blood pressures.
