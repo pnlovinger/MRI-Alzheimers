@@ -2,6 +2,7 @@ library(shiny)
 library(bslib)
 library(ggplot2)
 library(dplyr)
+library(Hmisc)
 
 # Load Data
 data <- read.csv("alzheimers_disease_data.csv")
@@ -60,8 +61,14 @@ server <- function(input, output) {
                                  Kaggle. https://doi.org/10.34740/KAGGLE/DSV/8668279")
   simPlot <- eventReactive(
     input$start,
-    ggplot(data, aes(x = Age, y = BMI)) + geom_point()
-    )
+    {
+      inputx <- input$exposure
+      inputy <- input$outcome
+      ggplot(data, aes(x = .data[[inputx]], y = .data[[inputy]])) + 
+        stat_summary(fun.y = "mean", geom = "bar", colour = 'black', fill = "white") +
+        stat_summary(fun.data = mean_cl_normal, geom = "errorbar", colour = "black", width = 0.2)
+    }
+   )
   output$results <- renderPlot(simPlot())
 }
 
