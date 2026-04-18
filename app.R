@@ -49,14 +49,14 @@ data$Gender <-  factor(data$Gender, levels = c(0,1), labels = c("Female", "Male"
 # Redefine Genotype variable into risk level and factor
 data$Genotype <-  as.character(data$Genotype)
 for (i in 1:nrow(data)) {
-  if ("4" %in% data$Genotype[i]) {
-    data$Genotype[i] <- "Increased Risk"
+  if (grepl("4", data$Genotype[i])) {
+    data$Genotype[i] <- 2
   }
-  else if ("2" %in% data$Genotype[i]) {
-    data$Genotype[i] <- "Decreased Risk"
+  else if (grepl("2", data$Genotype[i])) {
+    data$Genotype[i] <- 0
   }
   else {
-    data$Genotype[i] <- "Baseline Risk"
+    data$Genotype[i] <- 1
   }
 }
 data$Genotype <- factor(data$Genotype, levels = c(0,1,2), labels = c("Decreased Risk", "Baseline Risk", "Increased Risk"))
@@ -66,6 +66,8 @@ ui <- fluidPage(
   layout_columns(
     card(
       radioButtons("exposure", "Select Biomarker:", choices = Exposures),
+      checkboxInput("gender", "Factor by Gender?"),
+      checkboxInput("genotype", "Factor by Genotypic Risk?"),
       input_task_button("start", "Start Fit"),
       textOutput("Citation")
       ),
@@ -83,9 +85,33 @@ server <- function(input, output) {
     input$start,
     {
       inputy <- input$exposure
-      ggplot(data, aes(x = `Cognitive Status`, y = .data[[inputy]])) + 
-        stat_summary(fun = "mean", geom = "bar", colour = 'black', fill = "white") +
-        stat_summary(fun.data = mean_cl_normal, geom = "errorbar", colour = "black", width = 0.2)
+      if (input$gender == TRUE) {
+        if(input$genotype == TRUE) {
+          data %>% ggplot(aes(x = `Cognitive Status`, y = .data[[inputy]])) + 
+            facet_grid(Gender ~ Genotype) +
+            stat_summary(fun = "mean", geom = "bar", colour = 'black', fill = "white") +
+            stat_summary(fun.data = mean_cl_normal, geom = "errorbar", colour = "black", width = 0.2)
+        }
+        else {
+          data %>% ggplot(aes(x = `Cognitive Status`, y = .data[[inputy]])) + 
+            facet_grid(Gender ~ .) +
+            stat_summary(fun = "mean", geom = "bar", colour = 'black', fill = "white") +
+            stat_summary(fun.data = mean_cl_normal, geom = "errorbar", colour = "black", width = 0.2)
+        }
+      }
+      else {
+        if(input$genotype == TRUE) {
+          data %>% ggplot(aes(x = `Cognitive Status`, y = .data[[inputy]])) + 
+            facet_grid(. ~ Genotype) +
+            stat_summary(fun = "mean", geom = "bar", colour = 'black', fill = "white") +
+            stat_summary(fun.data = mean_cl_normal, geom = "errorbar", colour = "black", width = 0.2)
+        }
+        else {
+          data %>% ggplot(aes(x = `Cognitive Status`, y = .data[[inputy]])) + 
+            stat_summary(fun = "mean", geom = "bar", colour = 'black', fill = "white") +
+            stat_summary(fun.data = mean_cl_normal, geom = "errorbar", colour = "black", width = 0.2)
+        }
+      }
     }
    )
   output$results <- renderPlot(simPlot())
