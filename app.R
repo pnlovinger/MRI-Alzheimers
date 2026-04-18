@@ -12,13 +12,13 @@ data <- AD_biomarkers_tbl_df
 Mapper <- c(
   "Total Tau (pg/mL)" = "tau",
   "Thyroid Stimulating Hormone (uIU/mL)" = "Thyroid_Stimulating_Hormone",
-  "Transforming Growth Factor alpha (pg/mL)" = "TGF-alpha",
+  "Transforming Growth Factor alpha (pg/mL)" = "TGF_alpha",
   "Cortisol (ng/mL)" = "Cortisol",
   "Myoglobin (ng/mL)" = "Myoglobin",
   "Vascular Endothelial Growth Factor (pg/mL)" = "VEGF",
   "Complement C3 (mg/mL)" = "Complement_3",
   "Follicle-Stimulating Hormone (ng/mL)" = "FSH_Follicle_Stimulation_Hormon",
-  "Thrombopoetin (ng/mL)" = "Thrombopoetin",
+  "Thrombopoietin (ng/mL)" = "Thrombopoietin",
   "IL-6 Receptor (ng/mL)" = "IL_6_Receptor",
   "Leptin (ng/mL)" = "Leptin",
   "Insulin (uIU/mL)" = "Insulin",
@@ -28,7 +28,7 @@ Mapper <- c(
 data <- data %>% rename(all_of(Mapper))
 
 # Define button mapping
-Outcomes = c("Total Tau (pg/mL)",
+Exposures = c("Total Tau (pg/mL)",
              "Thyroid Stimulating Hormone (uIU/mL)",
              "Transforming Growth Factor alpha (pg/mL)",
              "Cortisol (ng/mL)",
@@ -44,8 +44,10 @@ Outcomes = c("Total Tau (pg/mL)",
 
 # Factor Gender Variable for mapping
 data$Gender <-  factor(data$Gender, levels = c(0,1), labels = c("Female", "Male"))
-                        
+            
+            
 # Redefine Genotype variable into risk level and factor
+data$Genotype <-  as.character(data$Genotype)
 for (i in 1:nrow(data)) {
   if ("4" %in% data$Genotype[i]) {
     data$Genotype[i] <- "Increased Risk"
@@ -57,6 +59,7 @@ for (i in 1:nrow(data)) {
     data$Genotype[i] <- "Baseline Risk"
   }
 }
+data$Genotype <- factor(data$Genotype, levels = c(0,1,2), labels = c("Decreased Risk", "Baseline Risk", "Increased Risk"))
 
 # Define UI for application
 ui <- fluidPage(
