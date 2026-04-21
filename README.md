@@ -6,7 +6,7 @@ This Shiny application is intended to provide users with a way to compare biomar
 This project was a collaboration by Pierce Lovinger and Jeremy Reimann, as an assignment for Brown University's BHDS 2010 course, "Statistical Programming in Health Data Science". This GitHub is hosted on Pierce Lovinger's account. The final application is hosted on shinyapps.io
 
 ## Access the Full Application here
-https://pilovinger.shinyapps.io/Alzheimers_Exploration/
+https://pilovinger.shinyapps.io/Alzheimers_and_Biomarkers/
 
 ## Raw Data Description
 The data set contains biomarker data for 333 volunteers enrollled in longitudinal studies for healthy aging and dementia. Most of the variables are various biomarkers and proteins pulled from Cerebrospinal Fluid (CSF) of the participants. In addition to these variables, the authors of the dataset also classified the cognitive status of the participants as either normal or impaired and provided their genotype and gender.
