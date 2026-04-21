@@ -131,27 +131,115 @@ server <- function(input, output) {
       
       
       if  (length(factors) == 0) {
-          return(list(plot = p, 
-                      stats= NULL,
-                      n_tests = 0,
-                      n_wilcox = 0))
-      }
-      
-      results_list <- lapply(unique(data$`Cognitive Status`), function(cs){
-        cs_data <- data %>% filter(`Cognitive Status`== cs)
+        df <-data %>% 
+          select(value =all_of(inputy), group =`Cognitive Status`) %>% 
+          filter(!is.na(value), !is.na(group))
         
-        lapply(factors,function(fac){
+        gc <- df %>% count(group)
+        
+        if(nrow(gc) <2 || any(gc$n <2)) {
+          return(list(plot =p, stats= NULL, n_tests =0, n_ttest =0, n_wilcox=0))
+        }
+      groups <- as.character(gc$group)
       
-      df <- cs_data %>% 
-        select(value = all_of(inputy), group =all_of(fac)) %>% 
-        filter(!is.na(value), !is.na(group))
+      if (length(groups) ==2) {
+        chosen_test <- auto_select_test(df)
+        if (chosen_test == "ttest") {
+          res   <- t.test(value ~group, data =df, var.equal =FALSE)
+          eff   <- as.numeric(cohens_d(value ~group, data =df)[[1]])
+          eff_label <- "Cohen's d"
+          test_label <- "Welch t-test (auto)"
+        } else {
+          res    <- wilcox.test(value ~group, data=df)
+          eff    <- as.numeric(wilcox_effsize(value ~group, data =df)$effsize)
+          eff_label <- "Rank-biserial r"
+          test_label <- "Wilcoxon (auto)"
+        }
+        
+        results <- data.frame(
+          Factor = "None",
+          Stratum = "All",
+          Comparison = paste(groups[1], "vs", groups[2]),
+          Test = test_label,
+          n1 =gc$n[1],
+          n2 =gc$n[2],
+          statistic = round(res$statistic, 3),
+          p = res$p.value,
+          effect = round(eff, 3),
+          `Effect Type` = eff_label,
+          check.names =FALSE,
+          stringsAsFactors = FALSE
+        )
+      } else {
+        pairs <-combn(groups,2, simplify= FALSE)
+        rows <- lapply(pairs, function(pr) {
+          sub_df     <- df %>% filter(as.character(group)%in% pr)
+          sub_df$group <- droplevels(sub_df$group)
+          res <- wilcox.test(value ~ group, data =sub_df)
+          eff    <- as.numeric(wilcox_effsize(value ~group, data= sub_df)$effsize)
+          data.frame(Factor ="None", "Stratum" = "All",
+                     Comparison =paste(pr[1], "vs", pr[2]),
+                     Test ="Wilcoxon (pairwise)",
+                     n1 =sum(as.character(sub_df$group) ==pr[1]),
+                     n2 = sum(as.character(sub_df$group) ==pr[2]),
+                     statistic = round(res$statistic,3),p =res$p.value,
+                     effect = round(eff,3), `Effect Type` = "Rank-biserial r",
+                     check.names =FALSE, stringsAsFactors = FALSE)
+                     })
+                    results <- bind_rows(rows)
+                      }
+                    results <- results %>% 
+                      mutate(p.adj =p.adjust(p, method ="BH"), 
+                             Significance =case_when(
+                               p.adj < 0.001 ~ "***", p.adj <0.01 ~ "**",
+                               p.adj < 0.05 ~ "*", TRUE ~"ns"))
+                      return(list(plot=p, stats=results,n_tests =nrow(results),
+                                  n_ttest=sum(results$Test =="Welch t-test (auto)"),
+                                  n_wilcox=sum(results$Test %in% c("Wilcoxon (auto)", "Wilcoxon (pairwise)"))))
+      }
+        
+        results_list <- lapply(factors, function(fac){
+          lapply(unique(data[[fac]]), function(fac_level) {
+        
+            fac_data <- data %>% filter(.data[[fac]] ==fac_level)
+            df <- fac_data %>% 
+              select(value =all_of(inputy), group = `Cognitive Status`) %>% 
+              filter(!is.na(value), !is.na(group))
       
       gc <- df %>% count(group)
         if (nrow(gc) <2|| any(gc$n <2)) return(NULL)
       
       groups <- as.character(gc$group)
       
-      if (length(groups) !=2) {
+      if (length(groups)== 2) {
+        chosen_test <- auto_select_test(df)
+        if(chosen_test =="ttest") {
+          res <- t.test(value ~group, data=df, var.equal =FALSE)
+          eff <- as.numeric(cohens_d(value ~ group, data=df)[[1]])
+          eff_label <- "Cohen's d"
+          test_label <- "Welch t-test (auto)"
+        } else {
+          res <- wilcox.test(value ~group, data=df) 
+          eff <- as.numeric(wilcox_effsize(value ~group, data =df)$effsize)
+          eff_label <- "Rank-biserial r"
+          test_label <- "Wilcoxon (auto)"
+        }
+        
+        return(data.frame(
+          Factor = fac,
+          Stratum =as.character(fac_level),
+          Comparison =paste(groups[1], "vs", groups[2]),
+          Test = test_label,
+          n1 =gc$n[1],
+          n2= gc$n[2],
+          statistic = round(res$statistic,3),
+          p = res$p.value,
+          effect =round(eff,3),
+          `Effect Type` = eff_label,
+          check.names = FALSE,
+          stringsAsFactors =FALSE
+        ))
+      }
         pairs <- combn(groups,2, simplify =FALSE)
         rows <- lapply(pairs,function(pr){
           sub_df <-df %>% filter(as.character(group) %in% pr)
@@ -160,7 +248,7 @@ server <- function(input, output) {
           eff <- as.numeric(wilcox_effsize(value ~group, data =sub_df)$effsize)
           data.frame(
             Factor =fac,
-            `Cognitive Group`=cs,
+            Stratum = as.character(fac_level),
             Comparison =paste(pr[1], "vs", pr[2]),
             Test ="Wilcoxon (pairwise)",
             n1 =sum(as.character(sub_df$group)==pr[1]),
@@ -173,39 +261,9 @@ server <- function(input, output) {
             stringsAsFactors =FALSE
           )
         })
-        return(bind_rows(rows))
-      }
-      
-      chosen_test <- auto_select_test(df)
-      
-    if (chosen_test == "ttest") {
-res <- t.test(value ~ group,data =df, var.equal = FALSE)
-eff <- as.numeric(cohens_d(value ~ group,data =df)[[1]])
-eff_label <- "Cohen's d"
-test_label <- "Welch t-test (auto)"
-} else{
-res <-wilcox.test(value ~ group, data=df)
-eff <- as.numeric(wilcox_effsize(value ~ group, data =df)$effsize)
-eff_label <- "Rank-biserial r"
-test_label<- "Wilcoxon (auto)"
-}
-      data.frame(
-        Factor = fac,
-        `Cognitive Group` = cs,
-        Comparison = paste(groups[1], "vs",groups[2]),
-        Test = test_label,
-        n1 =gc$n[1],
-        n2 =gc$n[2],
-        statistic = round(res$statistic,3),
-        p = res$p.value,
-        effect = round(eff,3),
-        `Effect Type` = eff_label,
-        check.names = FALSE,
-        stringsAsFactors = FALSE
-      )
-      
-        })
+        bind_rows(rows)
       })
+    })
       
       clean <- Filter(Negate(is.null),do.call(c,results_list))
       
@@ -217,46 +275,26 @@ test_label<- "Wilcoxon (auto)"
                     n_wilcox = 0))
       }
       
-      results <-bind_rows(clean)
-      
-      results <- results %>% 
-        mutate(p.adj =p.adjust(p,method = "BH"))
-      
-      results <- results %>% 
-        mutate(
+      results <-bind_rows(clean) %>% 
+        mutate(p.adj =p.adjust(p,method = "BH"),
           Significance =case_when(
             p.adj <0.001 ~ "***",
             p.adj <0.01 ~ "**",
             p.adj <0.05 ~ "*",
             TRUE        ~ "ns"
-          )
         )
+      )%>% 
       
-      results <- results %>% 
-        select(
-          Factor,
-          `Cognitive Group`,
-          Comparison,
-          Test,
-          n1, n2,
-          statistic,
-          p,
-          p.adj,
-          Significance,
-          effect,
-          `Effect Type`
-          )
-      n_ttest <- sum(results$Test == "Welch t-test (auto)")
-      n_wilcox <- sum(results$Test %in% c("Wilcoxon (auto)", "Wilcoxon (pairwise)"))
-                     
-      
-     list (
+        select(Factor,Stratum, Comparison, Test, n1, n2,
+               statistic, p, p.adj, Significance, effect, `Effect Type`)
+          
+      list (
        plot = p,
        stats =results,
        n_tests = nrow(results),
-       n_ttest = n_ttest,
-       n_wilcox = n_wilcox) 
-      
+       n_ttest = sum(results$Test == "Welch t-test (auto)"),
+       n_wilcox = sum(results$Test %in% c("Wilcoxon (auto)", "Wilcoxon (pairwise)"))
+      )
     }) 
   
 output$results <- renderPlot({
@@ -284,7 +322,7 @@ if (is.null(res$stats)) {
     sig_class <-if (r[["Significance"]] =="ns") "sig-ns" else "sig-star"
     tags$tr(
       tags$td(r[["Factor"]]),
-      tags$td(r[["Cognitive Group"]]),
+      tags$td(r[["Stratum"]]),
       tags$td(r[["Comparison"]]),
       tags$td(r[["Test"]]),
       tags$td(r[["n1"]]),
@@ -301,20 +339,20 @@ if (is.null(res$stats)) {
   tbl <- tags$div(class = "table-responsive",
                   tags$table(class = "stats-table",
                       tags$thead(tags$tr(       
-                      tags$th("Factor"), tags$th("Cognitive Group"), tags$th("Comparison"),
+                      tags$th("Factor"), tags$th("Stratum"), tags$th("Comparison"),
                       tags$th("Test"),tags$th("n1"), tags$th("n2"),
                       tags$th("Statistic"), tags$th("p"), tags$th("p.adj(BH)"),
                       tags$th("Sig."), tags$th("Effect Size"), tags$th("Effect Type")
-                  )), 
+              )), 
         tags$tbody(tbl_rows)  
-    )
-  )
+         )
+      )
         tagList(
           tags$div(class = "stats-header", paste("Statistical Results -", input$exposure)),
         meta,
         tbl
       )
-    })
+  })
 }
 
 
