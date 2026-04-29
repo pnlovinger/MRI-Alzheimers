@@ -113,7 +113,7 @@ server <- function(input, output) {
           theme(legend.position = "none", text = element_text(size = 15))
       } else if (input$gender) {
         p <- data %>% ggplot(aes(x = `Cognitive Status`, y = .data[[inputy]], fill = `Cognitive Status`)) + 
-          facet_grid(Gender ~ .) +
+          facet_grid(. ~ Gender) +
           stat_summary(fun = "mean", geom = "bar", colour = 'black') +
           stat_summary(fun.data = mean_cl_normal, geom = "errorbar", colour = "black", width = 0.2) + 
           theme(legend.position = "none", text = element_text(size = 15))
@@ -197,7 +197,9 @@ server <- function(input, output) {
           mutate(p.adj =p.adjust(p, method ="BH"), 
                  Significance =case_when(
                    p.adj < 0.001 ~ "***", p.adj <0.01 ~ "**",
-                   p.adj < 0.05 ~ "*", TRUE ~"ns"))
+                   p.adj < 0.05 ~ "*", TRUE ~"ns")) %>%
+          select(Factor, Stratum, Comparison, Test, n1, n2,
+                 statistic, p, p.adj, Significance, effect, `Effect Type`)
         return(list(plot=p, stats=results,n_tests =nrow(results),
                     n_ttest=sum(results$Test =="Welch t-test (auto)"),
                     n_wilcox=sum(results$Test %in% c("Wilcoxon (auto)", "Wilcoxon (pairwise)"))))
