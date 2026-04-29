@@ -133,7 +133,7 @@ server <- function(input, output) {
       
       if  (length(factors) == 0) {
         df <-data %>% 
-          select(value =all_of(inputy), group =`Cognitive Status`) %>% 
+          select(value = all_of(inputy), group =`Cognitive Status`) %>% 
           filter(!is.na(value), !is.na(group))
         
         gc <- df %>% count(group)
@@ -147,7 +147,7 @@ server <- function(input, output) {
           chosen_test <- auto_select_test(df)
           if (chosen_test == "ttest") {
             res   <- t.test(value ~group, data =df, var.equal =FALSE)
-            eff   <- as.numeric(effectsize:cohens_d(value ~group, data =df)[[1]])
+            eff   <- as.numeric(effectsize::cohens_d(value ~group, data =df)[[1]])
             eff_label <- "Cohen's d"
             test_label <- "Welch t-test (auto)"
           } else {
